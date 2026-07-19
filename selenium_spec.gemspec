@@ -17,7 +17,7 @@ Gem::Specification.new do |spec|
   spec.executables = ["selenium_spec"]
   spec.require_paths = ["lib"]
 
-  spec.add_dependency "mcp", ">= 0.4"
+  spec.add_dependency "mcp", ">= 0.25"
   spec.add_dependency "selenium-webdriver", ">= 4.27"
   spec.metadata["rubygems_mfa_required"] = "true"
 end
