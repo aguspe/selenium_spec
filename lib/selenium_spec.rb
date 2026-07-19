@@ -11,6 +11,7 @@ require_relative "selenium_spec/tools/helpers"
 require_relative "selenium_spec/tools/session_tools"
 require_relative "selenium_spec/tools/interaction_tools"
 require_relative "selenium_spec/tools/snapshot_tool"
+require_relative "selenium_spec/tools/assertion_tools"
 
 module SeleniumSpec
 end
