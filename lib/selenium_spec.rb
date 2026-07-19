@@ -9,6 +9,7 @@ require_relative "selenium_spec/codegen/capybara_renderer"
 require_relative "selenium_spec/app"
 require_relative "selenium_spec/tools/helpers"
 require_relative "selenium_spec/tools/session_tools"
+require_relative "selenium_spec/tools/interaction_tools"
 
 module SeleniumSpec
 end
