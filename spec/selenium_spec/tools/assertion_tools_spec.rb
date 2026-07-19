@@ -53,6 +53,14 @@ RSpec.describe "assertion tools" do
     expect(step.condition).to eq("visible")
   end
 
+  it "assert_element fails with an assertion error on timeout and records nothing" do
+    session.raise_on_next = Selenium::WebDriver::Error::TimeoutError.new("timed out")
+    res = SeleniumSpec::Tools::AssertElement.call(strategy: "css", value: ".gone", state: "visible",
+                                                  server_context: ctx)
+    expect(response_text(res)).to eq("ERROR: Assertion failed: expected css=.gone to be visible — it is not.")
+    expect(app.recorder).to be_empty
+  end
+
   it "assert_url matches pattern against current url" do
     res = SeleniumSpec::Tools::AssertUrl.call(pattern: "example\\.com/log", server_context: ctx)
     expect(response_text(res)).to include("Assertion passed")
