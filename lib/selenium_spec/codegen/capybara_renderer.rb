@@ -37,11 +37,10 @@ module SeleniumSpec
         when :click then [click_line(step)]
         when :type then [type_line(step)]
         when :select_option then [select_line(step)]
-        when :wait_for then [wait_line(step)]
         when :execute_script then [manual_comment(step)]
         when :assert_text then [assert_text_line(step)]
         when :assert_title then ["expect(page).to have_title(#{step.expected.inspect})"]
-        when :assert_element then ["expect(page).to have_css(#{css(step.locator).inspect})"]
+        when :wait_for, :assert_element then [presence_line(step.locator, step.condition)]
         when :assert_url then ["expect(page).to have_current_path(Regexp.new(#{step.expected.inspect}), url: true)"]
         else []
         end
@@ -97,9 +96,22 @@ module SeleniumSpec
         field ? "select #{step.value.inspect}, from: #{field.inspect}" : "#{finder(step.locator)}.select_option"
       end
 
-      def wait_line(step)
-        matcher = step.condition == "gone" ? "have_no_css" : "have_css"
-        "expect(page).to #{matcher}(#{css(step.locator).inspect})"
+      # Dispatches by locator strategy (not the lossy css() fallback) so xpath/link_text
+      # export as valid matchers; "present" adds visible: :all to match live wait_for
+      # semantics (find_elements sees hidden elements; have_css defaults to visible-only).
+      def presence_line(locator, condition)
+        matcher, arg = matcher_and_arg(locator, condition == "gone")
+        suffix = condition == "present" ? ", visible: :all" : ""
+        "expect(page).to #{matcher}(#{arg}#{suffix})"
+      end
+
+      def matcher_and_arg(locator, negate)
+        strategy, value = locator
+        case strategy.to_s
+        when "xpath" then [negate ? :have_no_xpath : :have_xpath, value.inspect]
+        when "link_text" then [negate ? :have_no_link : :have_link, value.inspect]
+        else [negate ? :have_no_css : :have_css, css(locator).inspect]
+        end
       end
 
       def manual_comment(step)

@@ -45,8 +45,54 @@ RSpec.describe SeleniumSpec::Codegen::CapybaraRenderer do
     expect(out).to include('click_link "Pricing"')
     expect(out).to include('select "Denmark", from: "country"')
     expect(out).to include('expect(page).to have_no_css(".spinner")')
-    expect(out).to include('expect(page).to have_css("#cart")')
+    expect(out).to include('expect(page).to have_css("#cart", visible: :all)')
     expect(out).to include('expect(page).to have_current_path(Regexp.new("checkout"), url: true)')
     expect(out).to include('expect(page).to have_content("Done")')
+  end
+
+  it "exports wait_for xpath as have_xpath when visible" do
+    steps = [
+      SeleniumSpec::Step.new(action: :wait_for, locator: ["xpath", "//div[@id='modal']"], condition: "visible",
+                             timeout: 10),
+      SeleniumSpec::Step.new(action: :assert_title, expected: "x")
+    ]
+    out = described_class.render(steps: steps, description: "d")
+    expect(out).to include('expect(page).to have_xpath("//div[@id=\'modal\']")')
+  end
+
+  it "exports wait_for link_text as have_no_link when gone" do
+    steps = [
+      SeleniumSpec::Step.new(action: :wait_for, locator: %w[link_text Pricing], condition: "gone", timeout: 10),
+      SeleniumSpec::Step.new(action: :assert_title, expected: "x")
+    ]
+    out = described_class.render(steps: steps, description: "d")
+    expect(out).to include('expect(page).to have_no_link("Pricing")')
+  end
+
+  it "exports wait_for css present with visible: :all" do
+    steps = [
+      SeleniumSpec::Step.new(action: :wait_for, locator: %w[css .cart], condition: "present", timeout: 10),
+      SeleniumSpec::Step.new(action: :assert_title, expected: "x")
+    ]
+    out = described_class.render(steps: steps, description: "d")
+    expect(out).to include('expect(page).to have_css(".cart", visible: :all)')
+  end
+
+  it "exports assert_element xpath present with visible: :all" do
+    steps = [
+      SeleniumSpec::Step.new(action: :assert_element, locator: ["xpath", "//div[@id='cart']"], condition: "present"),
+      SeleniumSpec::Step.new(action: :assert_title, expected: "x")
+    ]
+    out = described_class.render(steps: steps, description: "d")
+    expect(out).to include('expect(page).to have_xpath("//div[@id=\'cart\']", visible: :all)')
+  end
+
+  it "exports assert_element link_text visible without visible: :all" do
+    steps = [
+      SeleniumSpec::Step.new(action: :assert_element, locator: %w[link_text Pricing], condition: "visible"),
+      SeleniumSpec::Step.new(action: :assert_title, expected: "x")
+    ]
+    out = described_class.render(steps: steps, description: "d")
+    expect(out).to include('expect(page).to have_link("Pricing")')
   end
 end
