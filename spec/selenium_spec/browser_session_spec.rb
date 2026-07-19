@@ -56,4 +56,11 @@ RSpec.describe SeleniumSpec::BrowserSession do
     expect(session.password_field?(type: "password")).to be true
     expect(session.password_field?(type: "text")).to be false
   end
+
+  it "marks session dead when metadata capture raises InvalidSessionIdError" do
+    session.start(browser: "chrome")
+    allow(fake_element).to receive(:tag_name).and_raise(Selenium::WebDriver::Error::InvalidSessionIdError)
+    expect { session.click(%w[id login-btn]) }.to raise_error(SeleniumSpec::SessionDeadError)
+    expect(session).not_to be_alive
+  end
 end

@@ -71,14 +71,14 @@ module SeleniumSpec
 
     def click(locator)
       element = find(locator)
-      metadata = element_metadata(element)
+      metadata = guard { element_metadata(element) }
       guard { element.click }
       metadata
     end
 
     def type(locator, text, clear: false)
       element = find(locator)
-      metadata = element_metadata(element)
+      metadata = guard { element_metadata(element) }
       guard do
         element.clear if clear
         element.send_keys(text)
@@ -88,10 +88,12 @@ module SeleniumSpec
 
     def select_option(locator, text: nil, value: nil)
       element = find(locator)
-      metadata = element_metadata(element)
-      select = Selenium::WebDriver::Support::Select.new(element)
+      metadata = guard { element_metadata(element) }
       by, chosen = text ? [:text, text] : [:value, value]
-      guard { select.select_by(by, chosen) }
+      guard do
+        select = Selenium::WebDriver::Support::Select.new(element)
+        select.select_by(by, chosen)
+      end
       [metadata, by, chosen]
     end
 
