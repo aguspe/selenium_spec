@@ -34,7 +34,14 @@ RSpec/ExampleLength:
 
 RSpec/MultipleExpectations:
   Max: 5
+  Exclude:
+    - "spec/integration/**/*"
 
 RSpec/DescribeClass:
   Exclude:
     - "spec/selenium_spec/tools/**/*"
+    - "spec/integration/**/*"
+
+RSpec/SpecFilePathFormat:
+  Exclude:
+    - "spec/integration/**/*"
