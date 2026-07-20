@@ -32,6 +32,20 @@ RSpec.describe "session tools" do
     expect(app.recorder).to be_empty
   end
 
+  it "start_browser warns when a previous recording is still active" do
+    SpecAI::Tools::StartBrowser.call(browser: "chrome", headless: true, server_context: ctx)
+    res = SpecAI::Tools::StartBrowser.call(browser: "chrome", headless: true, server_context: ctx)
+    expect(response_text(res)).to include("previous recording is still active")
+  end
+
+  it "maps connection-refused errors to the dead-session message" do
+    session.alive = true
+    session.raise_on_next = Errno::ECONNREFUSED
+    res = SpecAI::Tools::CloseBrowser.call(server_context: ctx)
+    expect(response_text(res)).to include("Browser session lost")
+    expect(app.recorder).to be_empty
+  end
+
   it "close_browser quits and preserves the recording" do
     session.alive = true
     app.recorder.record(action: :navigate, value: "https://x.test")

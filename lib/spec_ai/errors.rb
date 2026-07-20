@@ -4,7 +4,6 @@ module SpecAI
   class Error < StandardError; end
   class SessionNotStartedError < Error; end
   class SessionDeadError < Error; end
-  class EmptyRecordingError < Error; end
 
   class ElementNotFoundError < Error
     def initialize(locator, suggestions = [])

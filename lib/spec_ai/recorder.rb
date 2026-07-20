@@ -2,7 +2,7 @@
 
 module SpecAI
   Step = Struct.new(
-    :action, :locator, :value, :url_before, :element, :expected, :scope,
+    :action, :locator, :value, :element, :expected, :scope,
     :masked, :condition, :timeout, :js, :select_by, :headless, :clear,
     keyword_init: true
   )
@@ -12,8 +12,10 @@ module SpecAI
       @steps = []
     end
 
+    # Steps are frozen once recorded: renderers and tools consume them read-only,
+    # and a consumer mutating a Step would silently corrupt the recording.
     def record(**attrs)
-      step = Step.new(**attrs)
+      step = Step.new(**attrs).freeze
       @steps << step
       step
     end

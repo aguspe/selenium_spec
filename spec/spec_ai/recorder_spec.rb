@@ -17,6 +17,12 @@ RSpec.describe SpecAI::Recorder do
     expect(recorder.steps.size).to eq(2)
   end
 
+  it "freezes recorded steps so consumers cannot corrupt the recording" do
+    step = recorder.record(action: :navigate, value: "https://example.com")
+    expect(step).to be_frozen
+    expect { recorder.steps.first.value = "hacked" }.to raise_error(FrozenError)
+  end
+
   it "reset clears all steps" do
     recorder.record(action: :navigate, value: "https://example.com")
     recorder.reset
