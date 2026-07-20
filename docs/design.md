@@ -182,8 +182,9 @@ This repo is a QA calling card - dogfood-grade.
 - **Unit:** recorder + renderers as pure functions - IR in, exact Ruby source out (golden-file specs). No browser. Fast.
 - **Tool layer:** tools tested against a fake session double - validates arg schemas and error mapping.
 - **Integration:** real headless Chrome against local static fixture pages (`spec/fixtures/site/`), run in CI (GitHub Actions, ubuntu + chrome).
-- **Meta-test (showpiece):** CI runs the exported spec from a scripted session and asserts it passes - proves the "generated specs run green" claim on every commit.
-- RuboCop on the codebase **and** on generated output (style-checked in tests).
+- **Meta-tests (showpiece):** CI runs an exported spec from a scripted session and asserts it passes, for **both** formats - the RSpec meta-test drives a `file://` fixture, the Capybara meta-test serves the fixture over HTTP (WEBrick) and runs the generated system spec through a no-Rails `rails_helper` shim. Proves the "generated specs run green" claim on every commit.
+- **Generated-code lint contract:** generated specs must be Lint- and Layout-clean under `spec/fixtures/generated_rubocop.yml`, which disables `Layout/LineLength`. Machine-generated specs embed URLs, selectors, and assertion text verbatim; those lines are legitimately long and are not wrapped. Both meta-tests lint their output against this config, and renderer specs lint a warned + long-line recording without a browser so the warning path (and any long-line path) can't regress unlinted.
+- RuboCop on the codebase itself uses the stricter project `.rubocop.yml`.
 
 ## Repo + launch
 

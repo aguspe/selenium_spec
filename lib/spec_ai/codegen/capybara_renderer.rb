@@ -31,13 +31,13 @@ module SpecAI
         lines = []
         starts = @steps.count { |s| s.action == :start_browser }
         if starts > 1
-          lines << "# WARNING: this recording has #{starts} browser sessions merged into one example; " \
-                   "re-record or call reset_recording between sessions for a clean spec."
+          lines << "# WARNING: this recording has #{starts} browser sessions merged into one example;"
+          lines << "# re-record or call reset_recording between sessions for a clean spec."
         end
         hosts = navigate_hosts
         if hosts.size > 1
-          lines << "# WARNING: this recording spans multiple hosts (#{hosts.join(', ')}); visit paths are " \
-                   "relative to a single Capybara app_host and will not target the other host(s)."
+          lines << "# WARNING: this recording spans multiple hosts (#{hosts.join(', ')});"
+          lines << "# visit paths are relative to one Capybara app_host and will not target the others."
         end
         lines
       end

@@ -10,4 +10,5 @@ RSpec.configure do |config|
   config.order = :random
   Kernel.srand config.seed
   config.filter_run_excluding :browser unless ENV["BROWSER_TESTS"]
+  config.include GeneratedLint
 end

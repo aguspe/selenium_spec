@@ -92,6 +92,8 @@ module SpecAI
         # rubocop:disable Style/KeywordParametersOrder
         def call(strategy:, value:, text: nil, option_value: nil, server_context:)
           # rubocop:enable Style/KeywordParametersOrder
+          text = nil if text == ""
+          option_value = nil if option_value == ""
           return error("Provide text or option_value.") if text.nil? && option_value.nil?
 
           guarded(server_context) do |app|

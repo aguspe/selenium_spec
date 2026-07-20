@@ -79,6 +79,9 @@ RSpec.describe "exported Capybara spec runs green", :browser do
       expect(source).to include('ENV.fetch("SPEC_AI_PASSWORD")')
       expect(source).not_to include("secret123")
 
+      lint_out, lint_status = lint_generated_file(spec_path)
+      expect(lint_status).to be_success, "generated Capybara code failed rubocop:\n#{lint_out}"
+
       File.write(File.join(dir, "rails_helper.rb"), rails_helper_shim)
       out, status = Open3.capture2e(
         { "CAPYBARA_APP_HOST" => host, "SPEC_AI_PASSWORD" => "secret123" },

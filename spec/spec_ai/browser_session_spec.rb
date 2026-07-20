@@ -127,6 +127,12 @@ RSpec.describe SpecAI::BrowserSession do
     expect { session.select_option(%w[id country]) }.to raise_error(ArgumentError, /provide text or value/)
   end
 
+  it "treats an empty-string text/value as absent rather than selecting by empty" do
+    session.start(browser: "chrome")
+    expect { session.select_option(%w[id country], text: "", value: "") }
+      .to raise_error(ArgumentError, /provide text or value/)
+  end
+
   it "identifies password fields from metadata" do
     expect(session.password_field?(type: "password")).to be true
     expect(session.password_field?(type: "text")).to be false
