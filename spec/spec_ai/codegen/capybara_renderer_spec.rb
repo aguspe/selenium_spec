@@ -182,6 +182,16 @@ RSpec.describe SpecAI::Codegen::CapybaraRenderer do
     expect(out).to include("# WARNING: this recording has 2 browser sessions")
   end
 
+  it "produces lint-clean output for a warned multi-host recording with long paths" do
+    steps = [
+      SpecAI::Step.new(action: :navigate, value: "https://a.example.com/search?q=#{'x' * 160}"),
+      SpecAI::Step.new(action: :navigate, value: "https://b.example.com/two"),
+      SpecAI::Step.new(action: :assert_title, expected: "x")
+    ]
+    out = described_class.render(steps: steps, description: "Long")
+    expect(generated_lint_clean?(out)).to be(true), "generated Capybara output failed the generated-code lint config"
+  end
+
   it "keeps query and fragment in visited paths" do
     steps = [
       SpecAI::Step.new(action: :navigate, value: "https://example.com/app?tab=2#/checkout"),

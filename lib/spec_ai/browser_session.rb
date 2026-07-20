@@ -96,6 +96,8 @@ module SpecAI
     WAIT_CONDITIONS = %w[visible present gone].freeze
 
     def select_option(locator, text: nil, value: nil)
+      text = nil if text == ""
+      value = nil if value == ""
       raise ArgumentError, "provide text or value to select" if text.nil? && value.nil?
 
       element = find(locator)

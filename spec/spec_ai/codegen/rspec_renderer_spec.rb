@@ -64,6 +64,18 @@ RSpec.describe SpecAI::Codegen::RspecRenderer do
     expect(out).to include("Selenium::WebDriver.for :chrome")
   end
 
+  it "produces lint-clean output for a warned recording with a long url" do
+    long_url = "https://example.com/search?q=#{'x' * 160}"
+    steps = [
+      SpecAI::Step.new(action: :start_browser, value: "chrome", headless: true),
+      SpecAI::Step.new(action: :navigate, value: long_url),
+      SpecAI::Step.new(action: :start_browser, value: "firefox", headless: false),
+      SpecAI::Step.new(action: :assert_title, expected: "x")
+    ]
+    out = described_class.render(steps: steps, description: "Long")
+    expect(generated_lint_clean?(out)).to be(true), "generated RSpec output failed the generated-code lint config"
+  end
+
   it "renders non-headless start without options" do
     steps = [SpecAI::Step.new(action: :start_browser, value: "firefox", headless: false),
              SpecAI::Step.new(action: :assert_title, expected: "x")]

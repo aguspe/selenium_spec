@@ -29,9 +29,7 @@ RSpec.describe "exported spec runs green", :browser do
       expect(source).to include('ENV.fetch("SPEC_AI_PASSWORD")')
       expect(source).not_to include("secret123")
 
-      lint_out, lint_status = Open3.capture2e(
-        "bundle", "exec", "rubocop", "--force-default-config", "--only", "Lint,Layout", path
-      )
+      lint_out, lint_status = lint_generated_file(path)
       expect(lint_status).to be_success, "generated code failed rubocop:\n#{lint_out}"
 
       run_out, run_status = Open3.capture2e(

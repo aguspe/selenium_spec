@@ -47,8 +47,9 @@ module SpecAI
         starts = @steps.count { |s| s.action == :start_browser }
         return [] if starts <= 1
 
-        ["# WARNING: this recording has #{starts} browser sessions merged into one example; " \
-         "the before hook uses the first (#{browser}). Call reset_recording between sessions for a clean spec."]
+        ["# WARNING: this recording has #{starts} browser sessions merged into one example.",
+         "# The before hook uses the first browser (#{browser}). Call reset_recording",
+         "# between sessions for a clean spec."]
       end
 
       def body_lines

@@ -1,0 +1,9 @@
+# RuboCop config that the export contract holds generated specs to: Lint- and
+# Layout-clean, but line length is not enforced. Machine-generated specs embed
+# URLs, CSS/XPath selectors, and assertion text verbatim, which are legitimately
+# long and cannot be wrapped without changing their meaning.
+AllCops:
+  NewCops: disable
+
+Layout/LineLength:
+  Enabled: false
