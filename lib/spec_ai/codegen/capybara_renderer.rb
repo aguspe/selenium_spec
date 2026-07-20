@@ -68,7 +68,11 @@ module SpecAI
 
       def finder(locator)
         strategy, value = locator
-        strategy.to_s == "xpath" ? "find(:xpath, #{value.inspect})" : "find(#{css(locator).inspect})"
+        case strategy.to_s
+        when "xpath" then "find(:xpath, #{value.inspect})"
+        when "link_text" then "find_link(#{value.inspect})"
+        else "find(#{css(locator).inspect})"
+        end
       end
 
       def click_line(step) # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity

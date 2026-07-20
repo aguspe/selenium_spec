@@ -117,6 +117,15 @@ RSpec.describe SpecAI::Codegen::CapybaraRenderer do
     expect(out).not_to include("fill_in")
   end
 
+  it "scopes assert_text by link_text via find_link, not a bogus css selector" do
+    steps = [
+      SpecAI::Step.new(action: :assert_text, expected: "Pricing plans", scope: %w[link_text Pricing]),
+      SpecAI::Step.new(action: :assert_title, expected: "x")
+    ]
+    out = described_class.render(steps: steps, description: "d")
+    expect(out).to include('expect(find_link("Pricing")).to have_content("Pricing plans")')
+  end
+
   it "keeps query and fragment in visited paths" do
     steps = [
       SpecAI::Step.new(action: :navigate, value: "https://example.com/app?tab=2#/checkout"),

@@ -18,7 +18,7 @@ module SpecAI
         id: el.id || null,
         name: el.getAttribute("name"),
         type: el.getAttribute("type"),
-        text: (el.innerText || el.value || "").trim().slice(0, 60),
+        text: (el.innerText || (el.type === "password" ? "" : el.value) || "").trim().slice(0, 60),
         href: el.getAttribute("href")
       }));
     JS
@@ -42,7 +42,7 @@ module SpecAI
 
     def quit
       @driver&.quit
-    rescue Selenium::WebDriver::Error::WebDriverError
+    rescue Selenium::WebDriver::Error::WebDriverError, Errno::ECONNREFUSED
       nil
     ensure
       @driver = nil

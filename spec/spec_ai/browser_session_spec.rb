@@ -57,6 +57,13 @@ RSpec.describe SpecAI::BrowserSession do
     end
   end
 
+  it "swallows connection errors from quit on a crashed driver" do
+    session.start(browser: "chrome")
+    allow(fake_driver).to receive(:quit).and_raise(Errno::ECONNREFUSED)
+    expect { session.quit }.not_to raise_error
+    expect(session).not_to be_alive
+  end
+
   it "quits the old driver when restarting after the session died" do
     session.start(browser: "chrome")
     allow(fake_driver).to receive(:current_url).and_raise(Selenium::WebDriver::Error::InvalidSessionIdError)

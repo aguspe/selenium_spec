@@ -26,7 +26,7 @@ module SpecAI
         yield app(server_context)
       rescue SessionNotStartedError
         error("No browser session. Call start_browser first.")
-      rescue SessionDeadError
+      rescue SessionDeadError, Errno::ECONNREFUSED
         error("Browser session lost (crashed or closed manually). Recording preserved - " \
               "call start_browser to continue, or export_spec to keep what you have.")
       rescue ElementNotFoundError => e

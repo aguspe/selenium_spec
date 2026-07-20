@@ -20,6 +20,9 @@ RSpec.describe SpecAI::BrowserSession, :browser do
     meta = session.type(%w[id password], "secret123")
     expect(session.password_field?(meta)).to be true
 
+    password_entry = session.snapshot.find { |e| e["id"] == "password" }
+    expect(password_entry["text"]).to eq("")
+
     click_meta = session.click(%w[id login-btn])
     expect(click_meta[:text]).to eq("Log in")
 

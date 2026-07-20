@@ -93,9 +93,8 @@ Client config after `gem install spec_ai`: `command: spec_ai`.
 IR step example:
 
 ```ruby
-{ action: :click, locator: [:id, "login-btn"], url_before: "/login",
-  element: { tag: "button", text: "Log in", id: "login-btn", name: nil, type: "submit" },
-  timestamp: ... }
+{ action: :click, locator: [:id, "login-btn"],
+  element: { tag: "button", text: "Log in", id: "login-btn", name: nil, type: "submit" } }
 { action: :assert_text, expected: "Welcome back", scope: nil }
 ```
 
