@@ -29,7 +29,7 @@ module SpecAI
       rescue SessionDeadError
         error("Browser session lost (crashed or closed manually). Recording preserved - " \
               "call start_browser to continue, or export_spec to keep what you have.")
-      rescue ElementNotFoundError => e
+      rescue ElementNotFoundError, OptionNotFoundError => e
         error(e.message)
       rescue Selenium::WebDriver::Error::TimeoutError => e
         error("Timed out: #{e.message}")

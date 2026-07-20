@@ -13,4 +13,12 @@ module SpecAI
       super(msg)
     end
   end
+
+  class OptionNotFoundError < Error
+    def initialize(by, chosen, available = [])
+      msg = "No option with #{by} #{chosen.inspect} in the select."
+      msg += " Available: #{available.map(&:inspect).join(', ')}" unless available.empty?
+      super(msg)
+    end
+  end
 end

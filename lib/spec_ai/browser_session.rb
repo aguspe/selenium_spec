@@ -97,11 +97,19 @@ module SpecAI
       element = find(locator)
       metadata = guard { element_metadata(element) }
       by, chosen = text ? [:text, text] : [:value, value]
-      guard do
-        select = Selenium::WebDriver::Support::Select.new(element)
-        select.select_by(by, chosen)
+      select = guard { Selenium::WebDriver::Support::Select.new(element) }
+      begin
+        guard { select.select_by(by, chosen) }
+      rescue Selenium::WebDriver::Error::NoSuchElementError
+        raise OptionNotFoundError.new(by, chosen, available_options(select, by))
       end
       [metadata, by, chosen]
+    end
+
+    def available_options(select, by)
+      guard { select.options.map { |o| by == :value ? o.attribute("value") : o.text } }
+    rescue Selenium::WebDriver::Error::WebDriverError
+      []
     end
 
     def screenshot_base64 = guard { @driver.screenshot_as(:base64) }
