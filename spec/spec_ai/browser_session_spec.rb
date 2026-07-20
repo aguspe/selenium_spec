@@ -81,6 +81,41 @@ RSpec.describe SpecAI::BrowserSession do
     expect(session).not_to be_alive
   end
 
+  it "marks session dead on a raw transport error instead of leaking it" do
+    session.start(browser: "chrome")
+    allow(fake_driver).to receive(:current_url).and_raise(Errno::EPIPE)
+    expect { session.current_url }.to raise_error(SpecAI::SessionDeadError)
+    expect(session).not_to be_alive
+  end
+
+  it "rejects a browser outside the supported list before dispatching to Options" do
+    bad = described_class.new
+    expect { bad.start(browser: "netscape") }.to raise_error(ArgumentError, /unsupported browser/)
+  end
+
+  it "leaves snapshot state consistent when the url read fails" do
+    session.start(browser: "chrome")
+    allow(fake_driver).to receive(:execute_script).and_return([{ "id" => "x" }])
+    allow(fake_driver).to receive(:current_url).and_raise(Selenium::WebDriver::Error::WebDriverError)
+    expect { session.snapshot }.to raise_error(Selenium::WebDriver::Error::WebDriverError)
+    expect(session.last_snapshot).to eq([])
+  end
+
+  it "raises OptionNotFoundError listing available options when a select value is missing" do
+    session.start(browser: "chrome")
+    select = instance_double(Selenium::WebDriver::Support::Select)
+    option = instance_double(Selenium::WebDriver::Element, text: "Denmark")
+    allow(option).to receive(:attribute).with("value").and_return("DK")
+    allow(select).to receive(:options).and_return([option])
+    allow(select).to receive(:select_by).with(:value, "XX")
+                                        .and_raise(Selenium::WebDriver::Error::NoSuchElementError)
+    allow(Selenium::WebDriver::Support::Select).to receive(:new).and_return(select)
+    allow(fake_driver).to receive(:find_element).with({ id: "country" }).and_return(fake_element)
+
+    expect { session.select_option(%w[id country], value: "XX") }
+      .to raise_error(SpecAI::OptionNotFoundError, /No option with value "XX".*Available: "DK"/m)
+  end
+
   it "identifies password fields from metadata" do
     expect(session.password_field?(type: "password")).to be true
     expect(session.password_field?(type: "text")).to be false

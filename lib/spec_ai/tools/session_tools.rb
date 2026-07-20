@@ -60,8 +60,11 @@ module SpecAI
       class << self
         def call(server_context:)
           guarded(server_context) do |app|
+            was_active = app.session.alive?
             app.session.quit
-            app.recorder.record(action: :close_browser)
+            # Only record a close for a session that was actually open, so a stray
+            # close_browser does not leave recorder.empty? falsely false.
+            app.recorder.record(action: :close_browser) if was_active
             text("Browser closed. Recording preserved - call export_spec to generate your spec.")
           end
         end

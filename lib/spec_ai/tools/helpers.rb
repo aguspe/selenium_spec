@@ -26,10 +26,10 @@ module SpecAI
         yield app(server_context)
       rescue SessionNotStartedError
         error("No browser session. Call start_browser first.")
-      rescue SessionDeadError, Errno::ECONNREFUSED
+      rescue SessionDeadError
         error("Browser session lost (crashed or closed manually). Recording preserved - " \
               "call start_browser to continue, or export_spec to keep what you have.")
-      rescue ElementNotFoundError => e
+      rescue ElementNotFoundError, OptionNotFoundError => e
         error(e.message)
       rescue Selenium::WebDriver::Error::TimeoutError => e
         error("Timed out: #{e.message}")
@@ -37,6 +37,8 @@ module SpecAI
         error("Invalid selector: #{e.message}")
       rescue Selenium::WebDriver::Error::WebDriverError => e
         error("WebDriver error: #{e.message}")
+      rescue StandardError => e
+        error("Unexpected error (#{e.class}): #{e.message}")
       end
     end
   end

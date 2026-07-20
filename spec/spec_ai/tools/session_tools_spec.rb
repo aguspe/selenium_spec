@@ -38,11 +38,19 @@ RSpec.describe "session tools" do
     expect(response_text(res)).to include("previous recording is still active")
   end
 
-  it "maps connection-refused errors to the dead-session message" do
+  it "maps a dead session to the recovery message and records nothing" do
     session.alive = true
-    session.raise_on_next = Errno::ECONNREFUSED
-    res = SpecAI::Tools::CloseBrowser.call(server_context: ctx)
+    session.raise_on_next = SpecAI::SessionDeadError
+    res = SpecAI::Tools::Navigate.call(url: "https://x.test", server_context: ctx)
     expect(response_text(res)).to include("Browser session lost")
+    expect(app.recorder).to be_empty
+  end
+
+  it "turns an unexpected error into a clean tool error instead of crashing" do
+    session.alive = true
+    session.raise_on_next = KeyError.new("boom")
+    res = SpecAI::Tools::Navigate.call(url: "https://x.test", server_context: ctx)
+    expect(response_text(res)).to eq("ERROR: Unexpected error (KeyError): boom")
     expect(app.recorder).to be_empty
   end
 

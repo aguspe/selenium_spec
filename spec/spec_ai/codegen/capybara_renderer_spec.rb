@@ -45,7 +45,7 @@ RSpec.describe SpecAI::Codegen::CapybaraRenderer do
     expect(out).to include('click_link "Pricing"')
     expect(out).to include('select "Denmark", from: "country"')
     expect(out).to include('expect(page).to have_no_css(".spinner", visible: :all)')
-    expect(out).to include('expect(page).to have_css("#cart", visible: :all)')
+    expect(out).to include(%q{expect(page).to have_css("[id='cart']", visible: :all)})
     expect(out).to include('expect(page).to have_current_path(Regexp.new("checkout"), url: true)')
     expect(out).to include('expect(page).to have_content("Done")')
   end
@@ -103,7 +103,7 @@ RSpec.describe SpecAI::Codegen::CapybaraRenderer do
       SpecAI::Step.new(action: :assert_title, expected: "x")
     ]
     out = described_class.render(steps: steps, description: "d")
-    expect(out).to include(%q{find("#country").find("option[value='DK']").select_option})
+    expect(out).to include(%q{find("[id='country']").find("option[value='DK']").select_option})
   end
 
   it "exports type without clear as send_keys to preserve append semantics" do
@@ -113,7 +113,7 @@ RSpec.describe SpecAI::Codegen::CapybaraRenderer do
       SpecAI::Step.new(action: :assert_title, expected: "x")
     ]
     out = described_class.render(steps: steps, description: "d")
-    expect(out).to include('find("#notes").send_keys(" appended")')
+    expect(out).to include(%q{find("[id='notes']").send_keys(" appended")})
     expect(out).not_to include("fill_in")
   end
 
@@ -124,6 +124,40 @@ RSpec.describe SpecAI::Codegen::CapybaraRenderer do
     ]
     out = described_class.render(steps: steps, description: "d")
     expect(out).to include('expect(find_link("Pricing")).to have_content("Pricing plans")')
+  end
+
+  it "escapes select-by-value so a hostile option value cannot break or inject Ruby" do
+    steps = [
+      SpecAI::Step.new(action: :select_option, locator: %w[id size], value: %q{x'); system("boom"); ('},
+                       select_by: :value,
+                       element: { tag: "select", text: "", id: "size", name: "size", type: nil }),
+      SpecAI::Step.new(action: :assert_title, expected: "x")
+    ]
+    out = described_class.render(steps: steps, description: "d")
+    expect { RubyVM::InstructionSequence.compile(out) }.not_to raise_error
+    expect(out).not_to include('system("boom")')
+  end
+
+  it "escapes id locators with CSS metacharacters into valid Ruby and CSS" do
+    steps = [
+      SpecAI::Step.new(action: :click, locator: ["id", "items[0][name]"],
+                       element: { tag: "div", text: "", id: "items[0][name]", name: nil, type: nil }),
+      SpecAI::Step.new(action: :assert_title, expected: "x")
+    ]
+    out = described_class.render(steps: steps, description: "d")
+    expect { RubyVM::InstructionSequence.compile(out) }.not_to raise_error
+    expect(out).to include(%q{find("[id='items[0][name]']").click})
+  end
+
+  it "escapes an apostrophe in a name locator" do
+    steps = [
+      SpecAI::Step.new(action: :click, locator: ["name", "user's_field"],
+                       element: { tag: "input", text: "", id: nil, name: "user's_field", type: "text" }),
+      SpecAI::Step.new(action: :assert_title, expected: "x")
+    ]
+    out = described_class.render(steps: steps, description: "d")
+    expect { RubyVM::InstructionSequence.compile(out) }.not_to raise_error
+    expect(out).to include(%q{find("[name='user\\\\'s_field']").click})
   end
 
   it "keeps query and fragment in visited paths" do
