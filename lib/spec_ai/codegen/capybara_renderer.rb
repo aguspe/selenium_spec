@@ -56,14 +56,25 @@ module SpecAI
         url
       end
 
+      # id/name locators become attribute selectors with the value in an escaped,
+      # single-quoted CSS string so ids/names containing [ ] : ' \ etc. stay valid.
+      # css strategy is a caller-supplied selector and is passed through verbatim.
       def css(locator)
         strategy, value = locator
         case strategy.to_s
         when "css" then value
-        when "id" then "##{value}"
-        when "name" then "[name='#{value}']"
+        when "id" then "[id=#{css_quote(value)}]"
+        when "name" then "[name=#{css_quote(value)}]"
         else value # rubocop:disable Lint/DuplicateBranch
         end
+      end
+
+      # Quotes a value as a single-quoted CSS string literal, escaping backslash and
+      # apostrophe. The whole selector is later .inspect-ed for the Ruby source layer,
+      # so both the CSS grammar and the Ruby string literal stay well-formed.
+      def css_quote(value)
+        escaped = value.to_s.gsub(/['\\]/) { |c| "\\#{c}" }
+        "'#{escaped}'"
       end
 
       def finder(locator)
@@ -108,7 +119,8 @@ module SpecAI
         el = step.element || {}
         field = el[:name] || el[:id]
         if step.select_by == :value
-          "#{finder(step.locator)}.find(\"option[value='#{step.value}']\").select_option"
+          selector = "option[value=#{css_quote(step.value)}]"
+          "#{finder(step.locator)}.find(#{selector.inspect}).select_option"
         elsif field
           "select #{step.value.inspect}, from: #{field.inspect}"
         else

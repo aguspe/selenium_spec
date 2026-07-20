@@ -8,6 +8,13 @@ module SpecAI
   # so this stays over Metrics/ClassLength rather than being split for its own sake.
   class BrowserSession # rubocop:disable Metrics/ClassLength
     STRATEGIES = %w[id css xpath name link_text].freeze
+    BROWSERS = %w[chrome firefox edge safari].freeze
+    # Transport-level failures that mean the driver connection is gone: treat the
+    # session as dead rather than letting a raw socket error escape the guard.
+    CONNECTION_ERRORS = [
+      Errno::ECONNREFUSED, Errno::ECONNRESET, Errno::EPIPE, Errno::ECONNABORTED,
+      EOFError, IOError, SocketError
+    ].freeze
     DEFAULT_TIMEOUT = 10
     HEADLESS_FLAGS = { "chrome" => "--headless=new", "edge" => "--headless=new", "firefox" => "-headless" }.freeze
 
@@ -117,9 +124,13 @@ module SpecAI
     end
 
     def snapshot
-      @last_snapshot = guard { @driver.execute_script(SNAPSHOT_JS) } || []
-      @last_snapshot_url = guard { @driver.current_url }
-      @last_snapshot
+      # Compute both, then assign together, so a failure reading the URL never
+      # leaves @last_snapshot updated against a stale @last_snapshot_url.
+      entries = guard { @driver.execute_script(SNAPSHOT_JS) } || []
+      url = guard { @driver.current_url }
+      @last_snapshot = entries
+      @last_snapshot_url = url
+      entries
     end
 
     def element_metadata(element)
@@ -176,12 +187,14 @@ module SpecAI
       raise SessionDeadError if @dead
 
       yield
-    rescue Selenium::WebDriver::Error::InvalidSessionIdError, Errno::ECONNREFUSED
+    rescue Selenium::WebDriver::Error::InvalidSessionIdError, Timeout::Error, *CONNECTION_ERRORS
       @dead = true
       raise SessionDeadError
     end
 
     def default_driver(browser, headless)
+      raise ArgumentError, "unsupported browser: #{browser}" unless BROWSERS.include?(browser.to_s)
+
       options = Selenium::WebDriver::Options.send(browser)
       options.add_argument(HEADLESS_FLAGS[browser]) if headless && HEADLESS_FLAGS.key?(browser)
       Selenium::WebDriver.for(browser.to_sym, options: options)

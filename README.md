@@ -45,9 +45,9 @@ claude mcp add spec-ai -- spec_ai
 | `find_element` | locator strategy + value | element summary, or error with near-matches |
 | `click` | locator | ok + resulting url/title |
 | `type` | locator, text, clear: bool | ok |
-| `select_option` | locator, value/text | ok |
+| `select_option` | locator, text or option_value | ok |
 | `screenshot` | - | image (base64) |
-| `execute_script` | js | result (exported only as a `# MANUAL: review this step` comment) |
+| `execute_script` | script | result (exported only as a `# MANUAL: review this step` comment) |
 | `wait_for` | locator, condition (visible/present/gone), timeout | ok/timeout |
 | `close_browser` | - | ok |
 
