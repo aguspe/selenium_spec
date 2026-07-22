@@ -18,6 +18,12 @@ module SpecAI
     DEFAULT_TIMEOUT = 10
     HEADLESS_FLAGS = { "chrome" => "--headless=new", "edge" => "--headless=new", "firefox" => "-headless" }.freeze
 
+    # Safari has no headless mode; a requested headless run there is silently headed,
+    # so callers can check support first and report the real state.
+    def self.supports_headless?(browser)
+      HEADLESS_FLAGS.key?(browser.to_s)
+    end
+
     SNAPSHOT_JS = <<~JS
       const sel = "a, button, input, select, textarea, [role=button], h1, h2, h3";
       return Array.from(document.querySelectorAll(sel)).slice(0, 100).map((el) => ({

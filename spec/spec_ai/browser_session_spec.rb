@@ -30,6 +30,12 @@ RSpec.describe SpecAI::BrowserSession do
     expect(session.browser_name).to eq("chrome")
   end
 
+  it "reports headless support per browser" do
+    expect(described_class.supports_headless?("chrome")).to be true
+    expect(described_class.supports_headless?("firefox")).to be true
+    expect(described_class.supports_headless?("safari")).to be false
+  end
+
   it "click returns element metadata captured before the click" do
     session.start(browser: "chrome")
     meta = session.click(%w[id login-btn])
