@@ -18,6 +18,12 @@ RSpec.describe "session tools" do
     expect(step.headless).to be true
   end
 
+  it "start_browser reports and records headed for safari even when headless is requested" do
+    res = SpecAI::Tools::StartBrowser.call(browser: "safari", headless: true, server_context: ctx)
+    expect(response_text(res)).to include("headless: false").and include("safari has no headless mode")
+    expect(app.recorder.steps.last.headless).to be false
+  end
+
   it "navigate records and reports title and url" do
     session.alive = true
     res = SpecAI::Tools::Navigate.call(url: "https://example.com/login", server_context: ctx)

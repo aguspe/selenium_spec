@@ -19,9 +19,12 @@ module SpecAI
         def call(server_context:, browser: "chrome", headless: true)
           guarded(server_context) do |app|
             restarted = app.recorder.steps.any? { |s| s.action == :start_browser }
+            # Safari ignores a headless request, so report and record the real state.
+            effective_headless = headless && BrowserSession.supports_headless?(browser)
             app.session.start(browser: browser, headless: headless)
-            app.recorder.record(action: :start_browser, value: browser, headless: headless)
-            message = "Started #{browser} (headless: #{headless}). Recording actions for spec export."
+            app.recorder.record(action: :start_browser, value: browser, headless: effective_headless)
+            message = "Started #{browser} (headless: #{effective_headless}). Recording actions for spec export."
+            message += " Note: #{browser} has no headless mode; running headed." if headless && !effective_headless
             if restarted
               message += " Note: the previous recording is still active and both sessions will export " \
                          "into one spec - call reset_recording for a fresh spec, or export_spec first next time."
